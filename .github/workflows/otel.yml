@@ -6,12 +6,6 @@ on:
     paths:
       - .github/workflows/**
 
-permissions:
-  contents: write
-  actions: write
-  pull-requests: write
-  workflows: write
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -24,3 +18,5 @@ jobs:
         env:
           OTEL_EXPORTER_OTLP_ENDPOINT: '${{ secrets.OTEL_EXPORTER_OTLP_ENDPOINT }}'
           OTEL_EXPORTER_OTLP_HEADERS: '${{ secrets.OTEL_EXPORTER_OTLP_HEADERS }}'
+        with:
+          token: ${{ secrets.WORKFLOW_TOKEN }}
