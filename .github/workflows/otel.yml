@@ -6,6 +6,12 @@ on:
     paths:
       - .github/workflows/**
 
+permissions:
+  contents: write
+  actions: write
+  pull-requests: write
+  workflows: write
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -13,7 +19,6 @@ jobs:
       contents: write
       actions: write
       pull-requests: write
-      workflows: write
     steps:
       - uses: plengauer/opentelemetry-github/actions/instrument/deploy@v5.14.0
         env:
