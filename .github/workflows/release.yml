@@ -1,15 +1,12 @@
 name: Release
-
 on:
   push:
     tags:
       - 'v*.*.*'
-
 jobs:
   build:
     name: Build Binaries
     runs-on: ubuntu-latest
-
     strategy:
       matrix:
         goos: [linux, windows, darwin]
@@ -18,20 +15,22 @@ jobs:
           - goos: darwin
             goarch: 386
       fail-fast: false
-
     steps:
+      - uses: plengauer/opentelemetry-github/actions/instrument/job@v5.12.5
+        with:
+          secrets_to_redact: ${{ toJSON(secrets) }}
+        env:
+          OTEL_EXPORTER_OTLP_ENDPOINT: ${{ secrets.OTEL_EXPORTER_OTLP_ENDPOINT }}
+          OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.OTEL_EXPORTER_OTLP_HEADERS }}
       - name: Checkout code
         uses: actions/checkout@v4
-
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.24'
-
       - name: Extract version from tag
         id: vars
         run: echo "VERSION=${GITHUB_REF##*/}" >> $GITHUB_OUTPUT
-
       - name: Build binary
         env:
           GOOS: ${{ matrix.goos }}
@@ -47,27 +46,28 @@ jobs:
           ZIP_NAME="${BIN_NAME%.exe}.zip"
           zip -j "$ZIP_NAME" "$BIN_NAME"
           rm "$BIN_NAME"
-
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: tooth-test-${{ matrix.goos }}-${{ matrix.goarch }}
           path: dist/*.zip
-
   release:
     name: Create Release
     runs-on: ubuntu-latest
     needs: build
-
     steps:
+      - uses: plengauer/opentelemetry-github/actions/instrument/job@v5.12.5
+        with:
+          secrets_to_redact: ${{ toJSON(secrets) }}
+        env:
+          OTEL_EXPORTER_OTLP_ENDPOINT: ${{ secrets.OTEL_EXPORTER_OTLP_ENDPOINT }}
+          OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.OTEL_EXPORTER_OTLP_HEADERS }}
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: dist
-
       - name: Display structure
         run: ls -R dist
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:

@@ -1,5 +1,4 @@
 name: Go Test
-
 on:
   push:
     branches:
@@ -8,22 +7,23 @@ on:
   pull_request:
     branches:
       - main
-
 jobs:
   test:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Set up Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: '1.24'
-
-    - name: Install dependencies
-      run: go mod tidy
-
-    - name: Run tests
-      run: go test -v ./...
+      - uses: plengauer/opentelemetry-github/actions/instrument/job@v5.12.5
+        with:
+          secrets_to_redact: ${{ toJSON(secrets) }}
+        env:
+          OTEL_EXPORTER_OTLP_ENDPOINT: ${{ secrets.OTEL_EXPORTER_OTLP_ENDPOINT }}
+          OTEL_EXPORTER_OTLP_HEADERS: ${{ secrets.OTEL_EXPORTER_OTLP_HEADERS }}
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.24'
+      - name: Install dependencies
+        run: go mod tidy
+      - name: Run tests
+        run: go test -v ./...
