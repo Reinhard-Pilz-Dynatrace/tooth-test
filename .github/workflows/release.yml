@@ -6,7 +6,7 @@ on:
       - 'v*'
 
 jobs:
-  release:
+  build:
     runs-on: ubuntu-latest
 
     strategy:
@@ -35,6 +35,61 @@ jobs:
         mkdir -p dist
         GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o dist/tooth-test-${{ matrix.goos }}-${{ matrix.goarch }}-${{ env.VERSION }}
 
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: build-${{ matrix.goos }}-${{ matrix.goarch }}
+        path: dist/
+
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Download build artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: build-linux-amd64
+        path: dist/
+    - name: Download build artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: build-linux-386
+        path: dist/
+    - name: Download build artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: build-linux-arm64
+        path: dist/
+    - name: Download build artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: build-windows-amd64
+        path: dist/
+    - name: Download build artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: build-windows-386
+        path: dist/
+    - name: Download build artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: build-windows-arm64
+        path: dist/
+    - name: Download build artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: build-darwin-amd64
+        path: dist/
+    - name: Download build artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: build-darwin-arm64
+        path: dist/
+
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
@@ -45,12 +100,13 @@ jobs:
         release_name: Release ${{ github.ref }}
         draft: false
         prerelease: false
+
     - name: Upload Release Asset
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: dist/tooth-test-${{ matrix.goos }}-${{ matrix.goarch }}-${{ env.VERSION }}
+        asset_path: dist/
         asset_name: tooth-test-${{ matrix.goos }}-${{ matrix.goarch }}-${{ env.VERSION }}
         asset_content_type: application/octet-stream
