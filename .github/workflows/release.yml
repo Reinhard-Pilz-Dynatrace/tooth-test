@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    name: Build and Release
+    name: Build Binaries
     runs-on: ubuntu-latest
 
     strategy:
@@ -16,7 +16,7 @@ jobs:
         goarch: [amd64, arm64]
         exclude:
           - goos: darwin
-            goarch: 386 # Remove if building for macOS ARM is needed and supported
+            goarch: 386
       fail-fast: false
 
     steps:
@@ -35,13 +35,33 @@ jobs:
         run: |
           mkdir -p dist
           EXT=""
-          if [ "$GOOS" = "windows" ]; then EXT=".exe"; fi
-          BIN_NAME="tooth-test-${GOOS}-${GOARCH}${EXT}"
+          if [ "${{ matrix.goos }}" = "windows" ]; then EXT=".exe"; fi
+          BIN_NAME="myapp-${{ matrix.goos }}-${{ matrix.goarch }}${EXT}"
           go build -o "dist/${BIN_NAME}" .
 
-      - name: Upload release asset
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: myapp-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: dist/
+
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Display structure
+        run: ls -R dist
+
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/*
+          files: dist/**/*  # upload all binaries
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
