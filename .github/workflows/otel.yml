@@ -19,4 +19,4 @@ jobs:
           OTEL_EXPORTER_OTLP_ENDPOINT: '${{ secrets.OTEL_EXPORTER_OTLP_ENDPOINT }}'
           OTEL_EXPORTER_OTLP_HEADERS: '${{ secrets.OTEL_EXPORTER_OTLP_HEADERS }}'
         with:
-          token: ${{ secrets.WORKFLOW_TOKEN }}
+          github_token: ${{ secrets.WORKFLOW_TOKEN }}
