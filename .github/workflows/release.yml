@@ -1,0 +1,49 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        goos: [linux, windows, darwin]
+        goarch: [amd64, 386, arm64]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: '1.16'
+
+    - name: Extract version number
+      id: extract_version
+      run: echo "VERSION=${GITHUB_REF##*/}" >> $GITHUB_ENV
+
+    - name: Build binaries
+      run: |
+        mkdir -p dist
+        GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o dist/tooth-test-${{ matrix.goos }}-${{ matrix.goarch }}-${{ env.VERSION }}
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: dist/tooth-test-${{ matrix.goos }}-${{ matrix.goarch }}-${{ env.VERSION }}
+        asset_name: tooth-test-${{ matrix.goos }}-${{ matrix.goarch }}-${{ env.VERSION }}
+        asset_content_type: application/octet-stream
