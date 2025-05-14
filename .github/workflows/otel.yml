@@ -13,6 +13,7 @@ jobs:
       contents: write
       actions: write
       pull-requests: write
+      workflows: write
     steps:
       - uses: plengauer/opentelemetry-github/actions/instrument/deploy@v5.14.0
         env:
